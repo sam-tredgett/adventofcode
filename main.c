@@ -1,82 +1,56 @@
-#include <stddef.h>
-#include <stdint.h>
+#include<stddef.h>
+#include<stdint.h>
 #include<stdio.h>
+#include<stdlib.h>
 
-typedef struct dict_entry_s {
-    const char *key;
-    int value;
-} dict_entry_s;
 
-typedef struct dict_s {
-    int len;
-    int cap;
-    dict_entry_s *entry;
-} dict_s, *dict_t;
+struct LinkedList {
+    int x, y;
+    struct LinkedList *next;
+};
 
-int dict_find_index(dict_t dict, const char *key) {
-    for (int i = 0; i < dict->len; i++) {
-        if (!strcmp(dict->entry[i], key)) {
-            return i;
+void map_coords_to_linked_list(struct LinkedList **linked_list, int *found_x, int *found_y){
+    if(*linked_list == NULL) {
+        struct LinkedList *newNode = (struct LinkedList *)malloc(sizeof(struct LinkedList));
+        if (newNode == NULL) {
+            fprintf(stderr, "Memory allocation error\n");
+            exit(1);
         }
+        newNode->x = *found_x;
+        newNode->y = *found_y;
+        newNode->next = NULL;
+        *linked_list = newNode;
+    } else if ((*linked_list)->x == *found_x && (*linked_list)->y == *found_y) {
+        return;
+    } else {
+        map_coords_to_linked_list(&((*linked_list)->next), found_x,found_y);
     }
-    return -1;
 }
 
-int dict_find(dict_t dict, const char *key, int def) {
-    int idx = dict_find_index(dict, key);
-    return idx == -1 ? def : dict->entry[idx].value;
-}
 
-void dict_add(dict_t dict, const char *key, int value) {
-   int idx = dict_find_index(dict, key);
-   if (idx != -1) {
-       dict->entry[idx].value = value;
-       return;
-   }
-   if (dict->len == dict->cap) {
-       dict->cap *= 2;
-       dict->entry = realloc(dict->entry, dict->cap * sizeof(dict_entry_s));
-   }
-   dict->entry[dict->len].key = strdup(key);
-   dict->entry[dict->len].value = value;
-   dict->len++;
-}
-
-dict_t dict_new(void) {
-    dict_s proto = {0, 10, malloc(10 * sizeof(dict_entry_s))};
-    dict_t d = malloc(sizeof(dict_s));
-    *d = proto;
-    return d;
-}
-
-void dict_free(dict_t dict) {
-    for (int i = 0; i < dict->len; i++) {
-        free(dict->entry[i].key);
+int get_linked_list_length(struct LinkedList *linked_list, int *length){
+    if(linked_list == NULL) {
+        return *length;
+    } else {
+        *length = *length + 1;
+        return get_linked_list_length(linked_list->next, length);
     }
-    free(dict->entry);
-    free(dict);
 }
 
   // north (^), south (v), east (>), or west (<). After each move, he delivers 
   // ^ = y + 1, v = y - 1, > = x + 1, < x - 1
-  // current implementation causes integer underflow
-  // this is because we can go -1 on a 0 value int 
 void calculate_coordinate_translation(char c, int *x, int *y) {
     switch (c){
         case '^':
-            printf("found up\n");
             *y = *y + 1;
             break;
         case 'v':
-            printf("found down\n");
             *y = *y - 1;
             break;
         case '>':
-            printf("found right\n");
             *x = *x + 1;
             break;
         case '<':
-            printf("found left\n");
             *x = *x - 1;
             break;
     }
@@ -116,31 +90,23 @@ int main() {
     }
 
     int c;
-    // Represent the positions santa visits as coordinates in a dictionary
-    // the dictionary begins as empty, for each move santa makes his position 
-    // relative to the start is checked, e.g., we 
-    // start with two integers, allowed to be negative, which are walked as x and y
-    // from the origin. each move will increase/decrease x and y based on the move.
-    // comparison wont be needed if the ints begin at 0, as they will track themselves by following Moves
-    
-    // each move, we need to capture the current location in a tbd data structure
-    // if we find a coord we've already visited, we don't add anything new to the tbd datastructure
-    // length of the tbd data structure will be our final answer
-    
-
     int x = 0, y = 0;
+    struct LinkedList *head = (struct LinkedList *)malloc(sizeof(struct LinkedList));
+    head->x = x;
+    head->y = y;
+    head->next = NULL;
+    
     while((c = fgetc(pfile)) != EOF) {
         printf("%c\n", c);
         calculate_coordinate_translation(c, &x, &y);
-        // we have our correct positions
-        // we need to store this in a DISTINCT data structure with some size
+        map_coords_to_linked_list(&head, &x, &y);
     }
     fclose(pfile);
     pfile = NULL;
 
+    int length = 0;
+    get_linked_list_length(head, &length);
+    printf("There were a total of %i distinct visited to houses\n", length);
 
     return 0;
 }
-
-
-
