@@ -59,16 +59,23 @@ int main() {
         printf("failed to read %s\n", filename);
         exit(1);
     }
-    int c, x = 0, y = 0;
+    int c, santa_x = 0, santa_y = 0, robot_x=0, robot_y=0;
     struct LinkedList *head = (struct LinkedList *)malloc(sizeof(struct LinkedList));
-    head->x = x;
-    head->y = y;
+    head->x = santa_x;
+    head->y = santa_y;
     head->next = NULL;
-    
+
+    int moveCount = 0;
     while((c = fgetc(pfile)) != EOF) {
         printf("%c\n", c);
-        calculate_coordinate_translation(c, &x, &y);
-        map_coords_to_linked_list(&head, &x, &y);
+        if(moveCount % 2 == 0) {
+            calculate_coordinate_translation(c, &robot_x, &robot_y);
+            map_coords_to_linked_list(&head, &robot_x, &robot_y);
+        } else {
+            calculate_coordinate_translation(c, &santa_x, &santa_y);
+            map_coords_to_linked_list(&head, &santa_x, &santa_y);
+        }
+        moveCount = moveCount + 1;
     }
     fclose(pfile);
     pfile = NULL;
