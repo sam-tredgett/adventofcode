@@ -59,9 +59,7 @@ int main() {
         printf("failed to read %s\n", filename);
         exit(1);
     }
-
-    int c;
-    int x = 0, y = 0;
+    int c, x = 0, y = 0;
     struct LinkedList *head = (struct LinkedList *)malloc(sizeof(struct LinkedList));
     head->x = x;
     head->y = y;
