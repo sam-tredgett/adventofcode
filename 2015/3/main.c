@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<time.h>
 
 struct LinkedList {
     int x, y;
@@ -52,6 +53,7 @@ void calculate_coordinate_translation(char c, int *x, int *y) {
 }
 
 int main() {
+    float startTime = (float)clock()/CLOCKS_PER_SEC;
     FILE *pfile = NULL;
     char *filename = "input.txt";
     pfile = fopen(filename, "r");
@@ -83,5 +85,8 @@ int main() {
     int length = 0;
     get_linked_list_length(head, &length);
     printf("there were a total of %i distinct visited to houses\n", length);
+    float endTime = (float)clock()/CLOCKS_PER_SEC;
+    float timeElapsed = endTime - startTime;
+    printf("program benchmarked, time elapsed=%f\n", timeElapsed);
     return 0;
 }
