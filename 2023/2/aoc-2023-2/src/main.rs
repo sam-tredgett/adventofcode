@@ -14,8 +14,8 @@ impl Game {
     fn update_value_if_greater(&mut self, field_name: &str, val: i32) {
         match field_name {
             "green" => if val > self.green { self.green = val },
-            "red" =>   if val > self.red { self.red= val},
-            "blue" => if val > self.blue { self.blue = val},
+            "red" =>   if val > self.red { self.red= val },
+            "blue" => if val > self.blue { self.blue = val },
             _ => ()
         };
     }
