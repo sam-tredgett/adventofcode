@@ -5,7 +5,7 @@ struct PartNumber {
 }
 
 fn main() {
-    let input = include_str!("../test.txt");
+    let input = include_str!("../input.txt");
     let part_numbers = parse_numbers_from_string_slice(input); 
     let mut accum = 0;
     for part_number in part_numbers {
@@ -48,58 +48,25 @@ fn get_part_number_from_iteration(prev_line: &str, current_line: &str, next_line
     let mut part_numbers: Vec<PartNumber> = vec![];
     let mut num_str: Vec<char>= vec![];
     let mut num_str_beginning_index = 0;
-    let mut num_str_ending_index = 0;
+    let num_str_ending_index = 0;
     for (i , c) in current_line.chars().enumerate() {
         if c.is_numeric() {
             if num_str.len() == 0 {
                 num_str_beginning_index = i;
             }
             num_str.push(c);
+
+            if i+1 == current_line.len() {
+                let part_num = convert_num_str_to_part_num(num_str.iter().collect::<String>(), num_str_beginning_index, num_str_ending_index, prev_line, current_line, next_line, i);
+                part_numbers.push(part_num);
+            }
         } else if num_str.len() > 0 || i == current_line.len()-1 {
             let found_num = num_str.iter().collect::<String>();                                                       
             if found_num != "" {
-                println!("found num_str={}", found_num);
-                let mut part_num = PartNumber { 
-                    value:found_num.parse().unwrap_or(0), 
-                    valid:false
-                };
-
-                let mut peek_start_index = if num_str_beginning_index > 0 { num_str_beginning_index - 1 } else {num_str_beginning_index};
-                let mut peek_end_index = if num_str_ending_index >= current_line.len() { i } else {i+1};
-
-                if peek_end_index < current_line.len() { // Our last digit not EOL
-                    let next = current_line.chars().collect::<Vec<char>>()[i];
-                    if  !next.is_alphanumeric() && next != '.' {
-                        part_num.valid = true; 
-                    }   
-                }
-
-                if peek_start_index > 0  && !part_num.valid { // Our first digit not start of line
-                    let prev = current_line.chars().collect::<Vec<char>>()[peek_start_index];
-                    if !prev.is_alphanumeric() && prev != '.' {
-                        part_num.valid = true;
-                    }
-                }
-               
-                if !part_num.valid && prev_line != "" {
-                    for c in prev_line[peek_start_index..peek_end_index].chars().collect::<Vec<char>>().iter() {
-                        if !c.is_alphanumeric() &&  *c != '.' {
-                           part_num.valid = true; 
-                           break;
-                        }
-                    }
-                }
-
-                if !part_num.valid && next_line != "" {
-                    for c in next_line[peek_start_index..peek_end_index].chars().collect::<Vec<char>>().iter() {
-                        if !c.is_alphanumeric() &&  *c != '.'{
-                            part_num.valid = true; 
-                            break;
-                        }
-                    }
-                }
+               let part_num =  convert_num_str_to_part_num(found_num, num_str_beginning_index, num_str_ending_index, prev_line, current_line, next_line, i);
                 part_numbers.push(part_num);
             }
+
             num_str.clear();
         } 
     }
@@ -109,6 +76,56 @@ fn get_part_number_from_iteration(prev_line: &str, current_line: &str, next_line
     None
 }
 
+fn convert_num_str_to_part_num(
+    found_num: String, 
+    num_str_beginning_index: usize, 
+    num_str_ending_index: usize,
+    prev_line: &str,
+    current_line: &str,
+    next_line: &str,
+    current_index:usize
+                               ) -> PartNumber {
+    let mut part_num = PartNumber { 
+        value:found_num.parse().unwrap_or(0), 
+        valid:false
+    };
+
+    let peek_start_index = if num_str_beginning_index > 0 { num_str_beginning_index - 1 } else {num_str_beginning_index};
+    let peek_end_index = if num_str_ending_index >= current_line.len() { current_index } else {current_index +1 };
+
+    if peek_end_index < current_line.len() { // Our last digit not EOL
+        let next = current_line.chars().collect::<Vec<char>>()[peek_end_index-1];
+        if  !next.is_alphanumeric() && next != '.' {
+            part_num.valid = true; 
+        }   
+    }
+
+    if peek_start_index > 0  && !part_num.valid { // Our first digit not start of line
+        let prev = current_line.chars().collect::<Vec<char>>()[peek_start_index];
+        if !prev.is_alphanumeric() && prev != '.' {
+            part_num.valid = true;
+        }
+    }
+
+    if !part_num.valid && prev_line != "" {
+        for c in prev_line[peek_start_index..peek_end_index].chars().collect::<Vec<char>>().iter() {
+            if !c.is_alphanumeric() &&  *c != '.' {
+                part_num.valid = true; 
+                break;
+            }
+        }
+    }
+
+    if !part_num.valid && next_line != "" {
+        for c in next_line[peek_start_index..peek_end_index].chars().collect::<Vec<char>>().iter() {
+            if !c.is_alphanumeric() &&  *c != '.'{
+                part_num.valid = true; 
+                break;
+            }
+        }
+    }
+    return part_num;
+}
 
 #[cfg(test)]
 mod tests {
