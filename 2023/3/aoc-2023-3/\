@@ -5,7 +5,7 @@ struct PartNumber {
 }
 
 fn main() {
-    let input = include_str!("../test.txt");
+    let input = include_str!("../input.txt");
     let part_numbers = parse_numbers_from_string_slice(input); 
     let mut accum = 0;
     for part_number in part_numbers {
@@ -34,6 +34,7 @@ fn parse_numbers_from_string_slice(input: &str) -> Vec<PartNumber> {
         }
     }
 
+    // Edge case for last line where iter.next() won't move current_line to last line
     prev_line = current_line;
     current_line = next_line;
     next_line = "";
@@ -68,8 +69,9 @@ fn get_part_number_from_iteration(prev_line: &str, current_line: &str, next_line
                 let mut peek_end_index = if num_str_ending_index >= current_line.len() { i } else {i+1};
 
                 if peek_end_index < current_line.len() { // Our last digit not EOL
-                    let next = current_line.chars().collect::<Vec<char>>()[i];
+                    let next = current_line.chars().collect::<Vec<char>>()[peek_end_index-1];
                     if  !next.is_alphanumeric() && next != '.' {
+                        println!("next char is={}, part num valid!", next);
                         part_num.valid = true; 
                     }   
                 }
@@ -77,6 +79,7 @@ fn get_part_number_from_iteration(prev_line: &str, current_line: &str, next_line
                 if peek_start_index > 0  && !part_num.valid { // Our first digit not start of line
                     let prev = current_line.chars().collect::<Vec<char>>()[peek_start_index];
                     if !prev.is_alphanumeric() && prev != '.' {
+                        println!("prev char is={}, part num valid!", prev);
                         part_num.valid = true;
                     }
                 }
@@ -84,21 +87,27 @@ fn get_part_number_from_iteration(prev_line: &str, current_line: &str, next_line
                 if !part_num.valid && prev_line != "" {
                     for c in prev_line[peek_start_index..peek_end_index].chars().collect::<Vec<char>>().iter() {
                         if !c.is_alphanumeric() &&  *c != '.' {
+                           print!("\nfound symbol={}, part number is valid!", c);
                            part_num.valid = true; 
                            break;
                         }
                     }
+                    print!("\n");
                 }
 
                 if !part_num.valid && next_line != "" {
-                    for c in next_line[peek_start_index..peek_end_index].chars().collect::<Vec<char>>().iter() {
+                    for c in next_line[peek_start_index..=peek_end_index].chars().collect::<Vec<char>>().iter() {
                         if !c.is_alphanumeric() &&  *c != '.'{
+                            print!("\nfound symbol={}, part number is valid!", c);
                             part_num.valid = true; 
                             break;
                         }
                     }
+                    print!("\n");
                 }
+
                 part_numbers.push(part_num);
+                print!("\n");
             }
             num_str.clear();
         } 
